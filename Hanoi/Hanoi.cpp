@@ -11,10 +11,11 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 #define NUM_PEGS    3
 using namespace std;
-typedef vector<char> peg;
+typedef vector<string> peg;
 peg HPeg[NUM_PEGS];
 int PegHeight;
 
@@ -26,11 +27,13 @@ void printPegs()
     for (int i=0; i< NUM_PEGS; i++) {
         cout << "|";
         //auto it = HPeg[i].begin();
-        for (int j= 1; j<= PegHeight; j++) {
-            if (j<= HPeg[i].size())
-                cout << HPeg[i][j-1];
-            else
-                cout << "-";
+        int j= 1;
+        for (; j<= HPeg[i].size(); j++) {
+            cout << HPeg[i][j-1];
+        }
+        cout << "\x1b[0m";
+        for (; j<= PegHeight; j++) {
+            cout << "-";
         }
         cout << endl;
     }
@@ -45,17 +48,17 @@ void moveDisk(int pgFrom, int pgTo) {
 }
 
 
-// 移動ルール
-void Hanoi(int nDisk, int pgFrom, int pgTo)
+// タワーの移動
+void moveTower(int height, int pgFrom, int pgTo)
 {
-    if (nDisk == 1) {
+    if (height == 1) {
         moveDisk(pgFrom, pgTo);
     }
     else {
         int pgRest= NUM_PEGS -pgFrom - pgTo;
-        Hanoi(nDisk-1, pgFrom, pgRest);
+        moveTower(height-1, pgFrom, pgRest);
         moveDisk(pgFrom, pgTo);
-        Hanoi(nDisk-1, pgRest, pgTo);
+        moveTower(height-1, pgRest, pgTo);
     }
 }
 
@@ -82,14 +85,30 @@ int main(int argc, char *argv[])
     // 初期化
     PegHeight = nDisks+2;
     for (int i=nDisks; i>=1; i--) {
-        HPeg[0].push_back(
-            i>=10? 'A'+i-10: '0'+i
-        );
+        string s;
+        switch (i % 4) {
+        case 1:
+            s += "\x1b[31;1m";
+            break;
+        case 2:
+            s += "\x1b[36;1m";
+            break;
+        case 3:
+            s += "\x1b[32;1m";
+            break;
+        case 0:
+            s += "\x1b[33;1m";
+        }
+        s = s + char(i>=10? 'A'+i-10: '0'+i);
+        HPeg[0].push_back(s);
+//        HPeg[0].push_back(
+//            i>=10? 'A'+i-10: '0'+i
+//        );
     }
            
     // メイン処理
     printPegs();
-    Hanoi(nDisks, 0, 2);
+    moveTower(nDisks, 0, 2);
 
     return 0;
 }
